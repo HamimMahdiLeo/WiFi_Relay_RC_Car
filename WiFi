@@ -1,0 +1,329 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
+
+// ===== WiFi =====
+const char* ssid = "RC_Car";
+const char* password = "12345678";
+
+WebServer server(80);
+
+// ===== Relay outputs (each relay switches one LED) =====
+#define RELAY1 25   // controls LED1
+#define RELAY2 26   // controls LED2
+#define RELAY3 27   // controls LED3
+#define RELAY4 14   // controls LED4
+
+// ===== Buttons =====
+#define BTN1   32   // press -> LED1 on
+#define BTN2   33   // press -> LED2 on
+#define BTN3   18   // press -> LED3 on
+#define BTN4   19   // press -> LED4 on
+
+// Most relay modules turn ON when the input is LOW.
+// If LEDs come on by default and turn off when pressed, swap these two.
+#define RELAY_ON  HIGH
+#define RELAY_OFF LOW
+
+
+// =====================================================
+// WiFi WEB PAGE
+// =====================================================
+
+void handleRoot() {
+
+  String html = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 Relay Control</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #222;
+      color: white;
+      margin-top: 40px;
+    }
+
+    button {
+      width: 180px;
+      height: 60px;
+      margin: 10px;
+      font-size: 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .on {
+      background: #00c853;
+      color: white;
+    }
+
+    .off {
+      background: #d50000;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>ESP32 Relay Control</h1>
+
+<button class="on" onclick="control('relay1','on')">
+  LED 1 ON
+</button>
+
+<button class="off" onclick="control('relay1','off')">
+  LED 1 OFF
+</button>
+
+<br>
+
+<button class="on" onclick="control('relay2','on')">
+  LED 2 ON
+</button>
+
+<button class="off" onclick="control('relay2','off')">
+  LED 2 OFF
+</button>
+
+<br>
+
+<button class="on" onclick="control('relay3','on')">
+  LED 3 ON
+</button>
+
+<button class="off" onclick="control('relay3','off')">
+  LED 3 OFF
+</button>
+
+<br>
+
+<button class="on" onclick="control('relay4','on')">
+  LED 4 ON
+</button>
+
+<button class="off" onclick="control('relay4','off')">
+  LED 4 OFF
+</button>
+
+
+<script>
+
+function control(relay, state) {
+  fetch("/" + relay + "/" + state);
+}
+
+</script>
+
+</body>
+</html>
+)rawliteral";
+
+  server.send(200, "text/html", html);
+}
+
+
+// =====================================================
+// RELAY CONTROL
+// =====================================================
+
+void relay1On() {
+  digitalWrite(RELAY1, RELAY_ON);
+  server.send(200, "text/plain", "RELAY1 ON");
+  Serial.println("WiFi -> RELAY1 ON");
+}
+
+void relay1Off() {
+  digitalWrite(RELAY1, RELAY_OFF);
+  server.send(200, "text/plain", "RELAY1 OFF");
+  Serial.println("WiFi -> RELAY1 OFF");
+}
+
+
+void relay2On() {
+  digitalWrite(RELAY2, RELAY_ON);
+  server.send(200, "text/plain", "RELAY2 ON");
+  Serial.println("WiFi -> RELAY2 ON");
+}
+
+void relay2Off() {
+  digitalWrite(RELAY2, RELAY_OFF);
+  server.send(200, "text/plain", "RELAY2 OFF");
+  Serial.println("WiFi -> RELAY2 OFF");
+}
+
+
+void relay3On() {
+  digitalWrite(RELAY3, RELAY_ON);
+  server.send(200, "text/plain", "RELAY3 ON");
+  Serial.println("WiFi -> RELAY3 ON");
+}
+
+void relay3Off() {
+  digitalWrite(RELAY3, RELAY_OFF);
+  server.send(200, "text/plain", "RELAY3 OFF");
+  Serial.println("WiFi -> RELAY3 OFF");
+}
+
+
+void relay4On() {
+  digitalWrite(RELAY4, RELAY_ON);
+  server.send(200, "text/plain", "RELAY4 ON");
+  Serial.println("WiFi -> RELAY4 ON");
+}
+
+void relay4Off() {
+  digitalWrite(RELAY4, RELAY_OFF);
+  server.send(200, "text/plain", "RELAY4 OFF");
+  Serial.println("WiFi -> RELAY4 OFF");
+}
+
+
+// =====================================================
+// SETUP
+// =====================================================
+
+void setup() {
+
+  Serial.begin(115200);
+  delay(500);
+
+  Serial.println();
+  Serial.println("=== Booting up ===");
+
+
+  // ===== Relay pins =====
+
+  pinMode(RELAY1, OUTPUT);
+  pinMode(RELAY2, OUTPUT);
+  pinMode(RELAY3, OUTPUT);
+  pinMode(RELAY4, OUTPUT);
+
+
+  // ===== Button pins =====
+
+  pinMode(BTN1, INPUT_PULLUP);
+  pinMode(BTN2, INPUT_PULLUP);
+  pinMode(BTN3, INPUT_PULLUP);
+  pinMode(BTN4, INPUT_PULLUP);
+
+
+  // ===== Relays OFF =====
+
+  digitalWrite(RELAY1, RELAY_OFF);
+  digitalWrite(RELAY2, RELAY_OFF);
+  digitalWrite(RELAY3, RELAY_OFF);
+  digitalWrite(RELAY4, RELAY_OFF);
+
+
+  // =================================================
+  // START ESP32 ACCESS POINT
+  // =================================================
+
+  WiFi.mode(WIFI_AP);
+
+  WiFi.softAP(ssid, password);
+
+  Serial.println("=== WiFi Started ===");
+  Serial.print("SSID: ");
+  Serial.println(ssid);
+
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
+
+
+  // =================================================
+  // WEB SERVER ROUTES
+  // =================================================
+
+  server.on("/", handleRoot);
+
+  server.on("/relay1/on", relay1On);
+  server.on("/relay1/off", relay1Off);
+
+  server.on("/relay2/on", relay2On);
+  server.on("/relay2/off", relay2Off);
+
+  server.on("/relay3/on", relay3On);
+  server.on("/relay3/off", relay3Off);
+
+  server.on("/relay4/on", relay4On);
+  server.on("/relay4/off", relay4Off);
+
+  server.begin();
+
+  Serial.println("=== Web Server Started ===");
+  Serial.println("=== Setup complete, entering loop ===");
+}
+
+
+// =====================================================
+// LOOP
+// =====================================================
+
+void loop() {
+
+  // Handle WiFi/web requests
+  server.handleClient();
+
+
+  // ===== Physical buttons =====
+
+  bool b1 = digitalRead(BTN1) == LOW;
+  bool b2 = digitalRead(BTN2) == LOW;
+  bool b3 = digitalRead(BTN3) == LOW;
+  bool b4 = digitalRead(BTN4) == LOW;
+
+
+  // Physical buttons control relays
+  digitalWrite(RELAY1, b1 ? RELAY_ON : RELAY_OFF);
+  digitalWrite(RELAY2, b2 ? RELAY_ON : RELAY_OFF);
+  digitalWrite(RELAY3, b3 ? RELAY_ON : RELAY_OFF);
+  digitalWrite(RELAY4, b4 ? RELAY_ON : RELAY_OFF);
+
+
+  // ===== Debug messages =====
+
+  static bool last1 = false;
+  static bool last2 = false;
+  static bool last3 = false;
+  static bool last4 = false;
+
+  if (b1 != last1) {
+    Serial.println(
+      b1 ? "BTN1 pressed -> RELAY1 ON"
+         : "BTN1 released -> RELAY1 OFF"
+    );
+    last1 = b1;
+  }
+
+  if (b2 != last2) {
+    Serial.println(
+      b2 ? "BTN2 pressed -> RELAY2 ON"
+         : "BTN2 released -> RELAY2 OFF"
+    );
+    last2 = b2;
+  }
+
+  if (b3 != last3) {
+    Serial.println(
+      b3 ? "BTN3 pressed -> RELAY3 ON"
+         : "BTN3 released -> RELAY3 OFF"
+    );
+    last3 = b3;
+  }
+
+  if (b4 != last4) {
+    Serial.println(
+      b4 ? "BTN4 pressed -> RELAY4 ON"
+         : "BTN4 released -> RELAY4 OFF"
+    );
+    last4 = b4;
+  }
+}
