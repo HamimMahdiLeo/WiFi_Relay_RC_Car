@@ -1,6 +1,6 @@
 # WiFi Remote Control Car — Full Beginner Build Guide
 
-Built around: **ESP8266EX module + USB-to-TTL adapter**, **5V 4-channel relay board**, **2× 5V DC motors**
+Built around: **ESP-32 module**, **Batteries or power bank for powering the relay board and ESP**, **5V 4-channel relay board**, **2 motor drivers**, **2× 5V DC motors**
 
 ---
 
@@ -8,7 +8,7 @@ Built around: **ESP8266EX module + USB-to-TTL adapter**, **5V 4-channel relay bo
 
 Here's the whole idea in one paragraph:
 
-Your phone will **not** connect to the internet for this. Instead, your ESP8266 will create its **own tiny WiFi hotspot**. Your phone connects to that hotspot (just like connecting to any home WiFi), then you open your phone's normal web browser and go to one address. A page with big **Forward / Backward / Left / Right / Stop** buttons shows up. When you tap a button, your phone tells the ESP8266 what to do, and the ESP8266 flips the relays on the relay board to send power to the two motors in the right direction. That's it — no app to install, no account, no internet needed.
+Your phone will **not** connect to the internet for this. Instead, your ESP-32 will create its **own tiny WiFi hotspot**. Your phone connects to that hotspot (just like connecting to any home WiFi), then you open your phone's normal web browser and go to one address. A page with big **Forward / Backward / Left / Right / Stop** buttons shows up. When you tap a button, your phone tells the ESP-32 what to do, and the ESP-32 flips the relays on the relay board to send power to the two motors in the right direction. That's it — no app to install, no account, no internet needed.
 
 **The one tricky part: a relay is just an on/off switch — it cannot make a motor spin backward by itself.** To make a motor go both forward AND backward, we need to flip the polarity (the + and −) of the wires going into it. We do that using **2 relays per motor** (4 relays total for your 2 motors) wired in a pattern called an **"H-bridge"**. Don't worry — you don't need to understand the theory. Just follow the wiring exactly as shown below and it will work. This guide is designed so your exact 4-relay board and 2 motors are enough — you don't need a 5th relay or a special motor driver chip.
 
@@ -18,25 +18,14 @@ Your phone will **not** connect to the internet for this. Instead, your ESP8266 
 
 ## Part 2 — Full Parts List
 
-### ✅ You already have:
-- ESP8266EX module + USB-to-TTL adapter
+### ✅ We need:
+- ESP-32
 - 5V 4-channel relay board
+- 2 motor drivers
 - 2× 5V DC motors
-
-### 🛒 You need to buy (all cheap, available at any local electronics shop or online):
-
-| # | Item | Why you need it | Notes |
-|---|------|------------------|-------|
-| 1 | **NodeMCU ESP8266 board** (e.g. "NodeMCU v3 CP2102") | Easiest brain for the car — has USB, enough pins, built-in voltage regulator | ~$3-4. Your bare ESP8266 chip + USB-TTL becomes optional/backup |
-| 2 | **Small 2WD robot car chassis kit** (plastic/acrylic base + 2 wheels + caster/ball wheel) | A frame to mount everything on | Comes with mounting screws usually |
-| 3 | **Battery holder for 4× AA batteries** (gives ~5–6V) OR a **small 5V/6V rechargeable battery pack** | Powers the motors + relay board | Do NOT use your laptop/PC USB to power motors |
-| 4 | **4× AA batteries** (if using AA holder) | Power source | Rechargeable NiMH AA batteries work great too |
-| 5 | **Male-to-female and male-to-male jumper wires** (a small pack of ~40) | All your wiring | Breadboard-style jumper wires |
-| 6 | **Small breadboard** (optional but helpful) | Makes prototyping easier before permanent wiring | Not strictly required |
-| 7 | **On/off power switch** (small toggle or slide switch) | Lets you turn the whole car on/off easily | Optional but very convenient |
-| 8 | **Double-sided foam tape / small zip ties** | To mount the boards and battery onto the chassis | For final assembly |
-
-That's it. No motor driver IC needed — your relay board replaces it.
+- Breadboard
+- Bunch of wires
+- External power source
 
 ---
 
