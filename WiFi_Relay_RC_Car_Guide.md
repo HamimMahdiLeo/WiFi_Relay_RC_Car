@@ -12,8 +12,6 @@ Your phone will **not** connect to the internet for this. Instead, your ESP-32 w
 
 **The one tricky part: a relay is just an on/off switch — it cannot make a motor spin backward by itself.** To make a motor go both forward AND backward, we need to flip the polarity (the + and −) of the wires going into it. We do that using **2 relays per motor** (4 relays total for your 2 motors) wired in a pattern called an **"H-bridge"**. Don't worry — you don't need to understand the theory. Just follow the wiring exactly as shown below and it will work. This guide is designed so your exact 4-relay board and 2 motors are enough — you don't need a 5th relay or a special motor driver chip.
 
-**Important reality check about your ESP8266:** A bare ESP8266 module (the kind programmed through a USB-to-TTL adapter, usually called an "ESP-01") only has **2 easily-usable control pins**. This project needs **4** control pins (one per relay). Because of this, I strongly recommend also picking up a cheap **NodeMCU board** (~$3, also uses the exact same ESP8266EX chip inside, so nothing you own is wasted). It plugs straight into your computer over USB, has plenty of pins, and is dramatically easier and safer for a first project. I'll write the whole guide around the NodeMCU. At the end, I'll add a short note for the harder route if you insist on using the bare module.
-
 ---
 
 ## Part 2 — Full Parts List
@@ -59,20 +57,20 @@ Notice: there is **no combination that ever short-circuits the battery**. The tw
 ⚠️ Before touching anything: make sure batteries are **disconnected** while you wire things up. Only connect the battery at the very end, after double-checking everything.
 
 ### Step 1 — Power the relay board
-- Connect the relay board's 5V/GND power input to the **NodeMCU's 5V (VU or VIN) and GND pins** — OR power it from the same battery pack you'll use for the motors (either works; sharing one battery for everything is fine for small motors).
-- Connect relay board **GND** to NodeMCU **GND** no matter what (this "common ground" step is required for the signals to work — don't skip it).
+- Connect the relay board's 5V/GND power input to the **ESP-32's 5V (VU or VIN) and GND pins** — OR power it from the same battery pack you'll use for the motors (either works; sharing one battery for everything is fine for small motors).
+- Connect relay board **GND** to ESP-32 **GND** no matter what (this "common ground" step is required for the signals to work — don't skip it).
 
 ### Step 2 — Connect the 4 signal wires (NodeMCU → Relay board)
 Each relay channel on your board has its own small connector with 3 wires: **VCC, GND, Signal** (this matches the "in1/in2/in3/in4" labels on your board).
 
-| Relay board channel | Connect Signal pin to NodeMCU pin | Purpose |
+| Relay board channel | Connect Signal pin to ESP-32 pin | Purpose |
 |---|---|---|
 | IN1 | **D1** | Left motor – Forward |
 | IN2 | **D2** | Left motor – Reverse |
 | IN3 | **D5** | Right motor – Forward |
 | IN4 | **D6** | Right motor – Reverse |
 
-Also connect each channel's VCC to NodeMCU 3V3 (or 5V, per your board's label) and GND to NodeMCU GND.
+Also connect each channel's VCC to ESP-32 3V3 (or 5V, per your board's label) and GND to ESP-32 GND.
 
 ### Step 3 — Wire the battery to the relay contacts (the blue screw terminals)
 For **all four** relay channels, wire identically:
