@@ -6,8 +6,6 @@ Built around: **ESP-32 module**, **Batteries or power bank for powering the rela
 
 ## Part 1 — What We're Actually Building (Plain Language)
 
-Here's the whole idea in one paragraph:
-
 Your phone will **not** connect to the internet for this. Instead, your ESP-32 will create its **own tiny WiFi hotspot**. Your phone connects to that hotspot (just like connecting to any home WiFi), then you open your phone's normal web browser and go to one address. A page with big **Forward / Backward / Left / Right / Stop** buttons shows up. When you tap a button, your phone tells the ESP-32 what to do, and the ESP-32 flips the relays on the relay board to send power to the two motors in the right direction. That's it — no app to install, no account, no internet needed.
 
 **The one tricky part: a relay is just an on/off switch — it cannot make a motor spin backward by itself.** To make a motor go both forward AND backward, we need to flip the polarity (the + and −) of the wires going into it. We do that using **2 relays per motor** (4 relays total for your 2 motors) wired in a pattern called an **"H-bridge"**. Don't worry — you don't need to understand the theory. Just follow the wiring exactly as shown below and it will work. This guide is designed so your exact 4-relay board and 2 motors are enough — you don't need a 5th relay or a special motor driver chip.
@@ -118,147 +116,21 @@ NodeMCU GND ─── Relay board GND (must connect!)
 
 ---
 
-## Part 6 — The Arduino Code (copy, paste, upload)
+## Part 6 — The Arduino Code
 
-Copy this whole block into a new sketch in Arduino IDE and click **Upload**. Nothing needs to be changed unless noted below.
-
-```cpp
-/*
-  WiFi Relay-Controlled RC Car
-  Board: NodeMCU (ESP8266)
-  Creates its own WiFi hotspot; control it from a phone browser.
-*/
-
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-
-// ---- WiFi hotspot settings (you can change the name/password) ----
-const char* ssid     = "RC_Car";
-const char* password = "12345678";   // must be at least 8 characters
-
-// ---- Relay pins ----
-#define LEFT_FWD   D1
-#define LEFT_REV   D2
-#define RIGHT_FWD  D5
-#define RIGHT_REV  D6
-
-// ---- Change this if your relays turn ON with HIGH instead of LOW ----
-// Most cheap relay boards are "active LOW" (LOW = relay ON).
-// If your motors behave backwards from what buttons say, flip these two lines.
-#define RELAY_ON  LOW
-#define RELAY_OFF HIGH
-
-ESP8266WebServer server(80);
-
-void allRelaysOff() {
-  digitalWrite(LEFT_FWD,  RELAY_OFF);
-  digitalWrite(LEFT_REV,  RELAY_OFF);
-  digitalWrite(RIGHT_FWD, RELAY_OFF);
-  digitalWrite(RIGHT_REV, RELAY_OFF);
-}
-
-void goForward() {
-  digitalWrite(LEFT_REV,  RELAY_OFF);
-  digitalWrite(RIGHT_REV, RELAY_OFF);
-  digitalWrite(LEFT_FWD,  RELAY_ON);
-  digitalWrite(RIGHT_FWD, RELAY_ON);
-}
-
-void goBackward() {
-  digitalWrite(LEFT_FWD,  RELAY_OFF);
-  digitalWrite(RIGHT_FWD, RELAY_OFF);
-  digitalWrite(LEFT_REV,  RELAY_ON);
-  digitalWrite(RIGHT_REV, RELAY_ON);
-}
-
-void turnLeft() {
-  // left wheel stops, right wheel goes forward -> car pivots left
-  digitalWrite(LEFT_FWD,  RELAY_OFF);
-  digitalWrite(LEFT_REV,  RELAY_OFF);
-  digitalWrite(RIGHT_REV, RELAY_OFF);
-  digitalWrite(RIGHT_FWD, RELAY_ON);
-}
-
-void turnRight() {
-  // right wheel stops, left wheel goes forward -> car pivots right
-  digitalWrite(RIGHT_FWD, RELAY_OFF);
-  digitalWrite(RIGHT_REV, RELAY_OFF);
-  digitalWrite(LEFT_REV,  RELAY_OFF);
-  digitalWrite(LEFT_FWD,  RELAY_ON);
-}
-
-// ---- The web page shown on the phone ----
-String htmlPage() {
-  String html = "<!DOCTYPE html><html><head><title>RC Car</title>";
-  html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-  html += "<style>";
-  html += "body{font-family:sans-serif;text-align:center;background:#111;color:#fff;}";
-  html += "button{width:110px;height:110px;font-size:22px;margin:6px;border-radius:16px;border:none;background:#2196F3;color:white;}";
-  html += "button:active{background:#0b5eab;}";
-  html += ".stopbtn{background:#e53935;}";
-  html += "</style></head><body>";
-  html += "<h2>WiFi RC Car</h2>";
-  html += "<div><button onclick=\"send('F')\">Forward</button></div>";
-  html += "<div>";
-  html += "<button onclick=\"send('L')\">Left</button>";
-  html += "<button class='stopbtn' onclick=\"send('S')\">STOP</button>";
-  html += "<button onclick=\"send('R')\">Right</button>";
-  html += "</div>";
-  html += "<div><button onclick=\"send('B')\">Backward</button></div>";
-  html += "<script>";
-  html += "function send(cmd){ fetch('/cmd?dir=' + cmd); }";
-  html += "</script></body></html>";
-  return html;
-}
-
-void handleRoot() {
-  server.send(200, "text/html", htmlPage());
-}
-
-void handleCommand() {
-  String dir = server.arg("dir");
-  if (dir == "F") goForward();
-  else if (dir == "B") goBackward();
-  else if (dir == "L") turnLeft();
-  else if (dir == "R") turnRight();
-  else if (dir == "S") allRelaysOff();
-  server.send(200, "text/plain", "OK");
-}
-
-void setup() {
-  pinMode(LEFT_FWD,  OUTPUT);
-  pinMode(LEFT_REV,  OUTPUT);
-  pinMode(RIGHT_FWD, OUTPUT);
-  pinMode(RIGHT_REV, OUTPUT);
-  allRelaysOff();
-
-  WiFi.softAP(ssid, password);   // ESP8266 creates its own WiFi hotspot
-
-  server.on("/", handleRoot);
-  server.on("/cmd", handleCommand);
-  server.begin();
-}
-
-void loop() {
-  server.handleClient();
-}
-```
-
-**No extra libraries need installing** — `ESP8266WiFi` and `ESP8266WebServer` come with the ESP8266 board package you installed in Part 5.
-
+Check the "src" folder inside "RC Car" folder for the main.cpp 
 ---
 
 ## Part 7 — Connecting Your Phone (Step by Step)
 
-1. Make sure the car is powered on (battery connected, NodeMCU running your uploaded code).
+1. Make sure the car is powered on (battery connected, ESP-32 running your uploaded code).
 2. On your phone, open **WiFi settings**.
-3. Look for a network called **"RC_Car"** and connect to it using the password **`12345678`**.
+3. Look for a network called **"RC_Car"** and connect to it using the password **`12345678`**. (You can always change the network SSID and Password from the code)
    - Your phone may warn "no internet connection" — that's expected and fine, tap "stay connected" / "use anyway."
-4. Open any web browser on your phone (Chrome, Safari, etc.).
+4. Open any web browser on your phone.
 5. In the address bar, type: **`http://192.168.4.1`** and hit go.
 6. You should see the **WiFi RC Car** page with Forward / Backward / Left / Right / STOP buttons.
 7. Tap and hold nowhere — just tap once for a command; tap **STOP** to stop it.
-8. Add this page to your phone's home screen (browser menu → "Add to Home Screen") so it feels like an app icon next time.
 
 ---
 
@@ -269,18 +141,15 @@ void loop() {
 1. Upload the code, power everything on, connect your phone as above.
 2. Tap **Forward** — both wheels should spin the same way. If a wheel spins the wrong way for "forward," just swap that motor's 2 wires on the relay COM terminals.
 3. If **nothing** happens when you tap a button, add `#define RELAY_ON HIGH` and `#define RELAY_OFF LOW` (swap the two lines) — your specific relay board may be "active HIGH" instead of "active LOW."
-4. If the ESP8266 **restarts/resets** every time a motor starts, your motors are pulling too much current for the battery to supply cleanly — use a separate, higher-capacity battery pack for the motors, or fresh/charged batteries.
+4. If the ESP-32 **restarts/resets** every time a motor starts, your motors are pulling too much current for the battery to supply cleanly — use a separate, higher-capacity battery pack for the motors, or fresh/charged batteries.
 5. Once wheel directions are all correct, mount everything on the chassis with tape/zip ties, keep wiring away from the wheels, and go test it on the floor.
 
 ---
 
 ## Safety Notes
 - Keep this project to low-voltage batteries only (the 4×AA / 5-6V pack mentioned above). Do not use mains/wall AC power anywhere in this build.
-- Double-check + and − on the battery before connecting it — reversed battery polarity can damage the ESP8266 and relay board.
+- Double-check + and − on the battery before connecting it — reversed battery polarity can damage the ESP-32 and relay board.
+- For any kind of testing, it is recommended to use the Type C port of ESP-32 with computer or laptop.
 - Always disconnect the battery before changing any wiring.
 
 ---
-
-## Appendix — If You Insist on Using the Bare ESP8266 (ESP-01) Instead of a NodeMCU
-
-This is harder and not recommended for a first project, but possible: the ESP-01 only exposes GPIO0 and GPIO2 easily as free pins; you can also reuse the TX (GPIO1) and RX (GPIO3) pins as your 3rd and 4th relay signals since you won't need the Serial Monitor while the car is running. You'll need a separate 3.3V regulator for the ESP8266 chip itself (it is **not 5V tolerant**), and you must program it the normal ESP-01 way (GPIO0 held to GND during upload, released afterward) using your USB-to-TTL adapter set to 3.3V. If this sounds confusing, that confusion is exactly why the NodeMCU is worth the few dollars.
