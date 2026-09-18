@@ -18,7 +18,7 @@ Your phone will **not** connect to the internet for this. Instead, your ESP-32 w
 - ESP-32
 - 5V 4-channel relay board
 - 2 motor drivers
-- 2× 5V DC motors
+- 2× 5V Geared DC motors
 - Breadboard
 - Bunch of wires
 - External power source
@@ -27,7 +27,7 @@ Your phone will **not** connect to the internet for this. Instead, your ESP-32 w
 
 ## Part 3 — Understanding the "Relay Trick" (H-Bridge, Simplified)
 
-Each of your 2 DC motors will use **2 of the 4 relay channels**:
+Each of 2 DC motors will use **2 of the 4 relay channels**:
 
 - **Motor 1 (Left wheel):** uses Relay 1 (LEFT-FORWARD) + Relay 2 (LEFT-REVERSE)
 - **Motor 2 (Right wheel):** uses Relay 3 (RIGHT-FORWARD) + Relay 4 (RIGHT-REVERSE)
@@ -46,7 +46,7 @@ Here's why this is safe and simple — there are only 4 possible states per moto
 | ON | OFF | One wire gets +, other gets − → **motor spins forward** |
 | OFF | ON | Wires reversed → **motor spins backward** |
 
-Notice: there is **no combination that ever short-circuits the battery**. The two "same" states just stop the motor. This is the standard, safe way electricians and hobbyists reverse small DC motors with relays, so you can wire this with confidence.
+Notice: there is **no combination that ever short-circuits the battery**. The two "same" states just stop the motor. This is the standard, safe way electricians and hobbyists reverse small DC motors with relays.
 
 ---
 
@@ -58,8 +58,8 @@ Notice: there is **no combination that ever short-circuits the battery**. The tw
 - Connect the relay board's 5V/GND power input to the **ESP-32's 5V (VU or VIN) and GND pins** — OR power it from the same battery pack you'll use for the motors (either works; sharing one battery for everything is fine for small motors).
 - Connect relay board **GND** to ESP-32 **GND** no matter what (this "common ground" step is required for the signals to work — don't skip it).
 
-### Step 2 — Connect the 4 signal wires (NodeMCU → Relay board)
-Each relay channel on your board has its own small connector with 3 wires: **VCC, GND, Signal** (this matches the "in1/in2/in3/in4" labels on your board).
+### Step 2 — Connect the 4 signal wires (ESP-32 → Relay board)
+Each relay channel on the board has its own small connector with 3 wires: **VCC, GND, Signal**, mentioned as In1, In2, In3, In4.
 
 | Relay board channel | Connect Signal pin to ESP-32 pin | Purpose |
 |---|---|---|
@@ -81,7 +81,7 @@ For **all four** relay channels, wire identically:
 - **Right motor:** one wire → Relay 3's **COM**, other wire → Relay 4's **COM**
 
 ### Step 5 — Power switch (optional but recommended)
-Put your on/off switch between the battery's + terminal and everything else, so you can kill power to the whole car in one flip.
+Put the on/off switch between the battery's + terminal and everything else, so you can kill power to the whole car in one flip.
 
 ### Text wiring summary (keep this next to you while wiring):
 
@@ -96,28 +96,29 @@ Relay2-COM ──── Left Motor wire B
 Relay3-COM ──── Right Motor wire A
 Relay4-COM ──── Right Motor wire B
 
-NodeMCU D1 ──── Relay board IN1 (signal)
-NodeMCU D2 ──── Relay board IN2 (signal)
-NodeMCU D5 ──── Relay board IN3 (signal)
-NodeMCU D6 ──── Relay board IN4 (signal)
-NodeMCU GND ─── Relay board GND (must connect!)
+ESP-32 D1 ──── Relay board IN1 (signal)
+ESP-32 D2 ──── Relay board IN2 (signal)
+ESP-32 D5 ──── Relay board IN3 (signal)
+ESP-32 D6 ──── Relay board IN4 (signal)
+ESP-32 GND ─── Relay board GND (must connect!)
 ```
 
 ---
 
-## Part 5 — Setting Up Arduino IDE for ESP8266
+## Part 5 — Setting Up Arduino IDE for ESP-32
 
-1. Download and install **Arduino IDE** (arduino.cc) if you don't have it.
+1. Download and install **Arduino IDE**.
 2. Open Arduino IDE → **File → Preferences** → paste this into "Additional Boards Manager URLs":
    `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
-3. Go to **Tools → Board → Boards Manager**, search "esp8266", install the package by ESP8266 Community.
-4. Go to **Tools → Board**, select **"NodeMCU 1.0 (ESP-12E Module)"**.
-5. Plug the NodeMCU into your computer with a USB cable, then select the correct **Port** under Tools → Port.
+3. Go to **Tools → Board → Boards Manager**, search "esp32", install the package by ESP32 Community.
+4. Go to **Tools → Board**, select **"ESP 32 Dev module (ESP-32 Module)"**.
+5. Plug the ESP-32 into your computer with a USB cable, then select the correct **Port** under Tools → Port.
 
 ---
 
 ## Part 6 — The Arduino Code
 
+For simulation there is a different code in the file WiFi
 Check the "src" folder inside "RC Car" folder for the main.cpp 
 ---
 
